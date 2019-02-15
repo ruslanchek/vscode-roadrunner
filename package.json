@@ -10,34 +10,95 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.helloWorld"
+    "onCommand:roadrunner.refreshTasks",
+    "onCommand:roadrunner.run",
+    "onCommand:roadrunner.stop",
+    "onCommand:roadrunner.stopAll",
+    "onCommand:roadrunner.restartAll"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "extension.helloWorld",
-        "title": "Hello World"
+        "command": "roadrunner.refreshTasks",
+        "title": "Roadrunner: Refresh",
+        "icon": {
+          "dark": "resources/refresh.svg",
+          "light": "resources/refresh.svg"
+        }
+      },
+      {
+        "command": "roadrunner.run",
+        "title": "Roadrunner: Run task",
+        "icon": "$(play)"
+      },
+      {
+        "command": "roadrunner.stop",
+        "title": "Roadrunner: Stop task",
+        "icon": "$(stop)"
+      },
+      {
+        "command": "roadrunner.stopAll",
+        "title": "Roadrunner: Stop all tasks",
+        "icon": {
+          "dark": "resources/stop.svg",
+          "light": "resources/stop.svg"
+        }
+      },
+      {
+        "command": "roadrunner.restartAll",
+        "title": "Roadrunner: Restart all tasks",
+        "icon": {
+          "dark": "resources/play.svg",
+          "light": "resources/play.svg"
+        }
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "package-explorer",
-          "title": "Package Explorer",
+          "id": "roadrunner",
+          "title": "Roadrunner",
           "icon": "resources/logo.svg"
         }
       ]
     },
     "views": {
-      "package-explorer": [
+      "roadrunner": [
         {
-          "id": "package-dependencies",
-          "name": "Dependencies"
+          "id": "roadrunnerTasks",
+          "name": "Tasks"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "roadrunner.refreshTasks",
+          "when": "view == roadrunnerTasks",
+          "group": "navigation"
         },
         {
-          "id": "package-outline",
-          "name": "Outline"
+          "command": "roadrunner.restartAll",
+          "when": "view == roadrunnerTasks",
+          "group": "navigation"
+        },
+        {
+          "command": "roadrunner.stopAll",
+          "when": "view == roadrunnerTasks",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "roadrunner.run",
+          "when": "view == roadrunnerTasks && viewItem == task",
+          "group": "inline"
+        },
+        {
+          "command": "roadrunner.stop",
+          "when": "view == roadrunnerTasks && viewItem == task",
+          "group": "inline"
         }
       ]
     }
