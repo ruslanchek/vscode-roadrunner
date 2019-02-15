@@ -2,6 +2,10 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 
+export interface ITerminalInstance {
+  terminal: vscode.Terminal;
+}
+
 export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
   private _onDidChangeTreeData: vscode.EventEmitter<
     Task | undefined
@@ -10,6 +14,67 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
     ._onDidChangeTreeData.event;
 
   constructor(private workspaceRoot: string) {}
+
+  public terminals: Map<string, ITerminalInstance> = new Map();
+
+  getTerminal(label: string): ITerminalInstance {
+    let terminalInstance = this.terminals.get(label);
+
+    if (!terminalInstance) {
+      terminalInstance = {
+        terminal: vscode.window.createTerminal(label)
+      };
+
+      this.terminals.set(label, terminalInstance);
+      this.refresh();
+    }
+
+    return terminalInstance;
+  }
+
+  run(task: Task) {
+    const { terminal } = this.getTerminal(task.label);
+
+    terminal.show();
+    terminal.sendText(`npm run ${task.script}`);
+  }
+
+  closeTerminal(label: string) {
+    const terminalInstance = this.terminals.get(label);
+
+    if (terminalInstance) {
+      terminalInstance.terminal.dispose();
+      this.terminals.delete(label);
+    }
+
+    this.refresh();
+  }
+
+  restartAllTerminals() {
+    const running = Array.from(this.terminals.keys());
+
+    this.terminals.forEach((terminalInstance, key) => {
+      this.closeTerminal(key);
+    });
+
+    this.getChildren().then((tasks: Task[]) => {
+      tasks.forEach(task => {
+        if (running.includes(task.label)) {
+          this.run(task);
+        }
+      });
+    });
+
+    this.refresh();
+  }
+
+  closeAllTerminals() {
+    this.terminals.forEach((terminalInstance, key) => {
+      this.closeTerminal(key);
+    });
+
+    this.refresh();
+  }
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -35,15 +100,12 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
     }
   }
 
-  /**
-   * Given the path to package.json, read all its dependencies and devDependencies.
-   */
   private getTasks(packageJsonPath: string): Task[] {
     if (this.pathExists(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
       return Object.keys(packageJson.scripts).map(
-        script => new Task(script, packageJson.scripts[script])
+        script => new Task(script, packageJson.scripts[script], this)
       );
     } else {
       return [];
@@ -62,7 +124,11 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
 }
 
 export class Task extends vscode.TreeItem {
-  constructor(public readonly label: string, public readonly script: string) {
+  constructor(
+    public readonly label: string,
+    public readonly script: string,
+    private readonly context: RoadrunnerProvider
+  ) {
     super(label);
   }
 
@@ -74,19 +140,14 @@ export class Task extends vscode.TreeItem {
     return "running";
   }
 
+  get isRunning(): boolean {
+    const terminalInstance = this.context.terminals.get(this.label);
+
+    return Boolean(terminalInstance);
+  }
+
   get iconPath() {
-    let iconName;
-
-    switch (this.label) {
-      case "dev": {
-        iconName = "active";
-        break;
-      }
-
-      default: {
-        iconName = "inactive";
-      }
-    }
+    const iconName = this.isRunning ? "active" : "inactive";
 
     return {
       light: path.join(__filename, "..", "..", "resources", `${iconName}.svg`),
