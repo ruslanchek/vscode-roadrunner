@@ -1,11 +1,14 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
-import { RoadrunnerProvider } from "./Provider";
+import { RoadrunnerProvider, Task } from "./Provider";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const roadrunnerProvider = new RoadrunnerProvider(vscode.workspace.rootPath!);
+  vscode.window.registerTreeDataProvider("roadrunnerTasks", roadrunnerProvider);
+
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "roadrunner" is now active!');
@@ -20,6 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Display a message box to the user
       vscode.window.showInformationMessage("Refresh tasks");
+
+      roadrunnerProvider.refresh();
     }
   );
 
@@ -37,7 +42,9 @@ export function activate(context: vscode.ExtensionContext) {
     // The code you place here will be executed every time your command is executed
 
     // Display a message box to the user
-    vscode.window.showInformationMessage("Stop all tasks");
+    vscode.window.showInformationMessage(
+      "Stop all tasks" + vscode.workspace.rootPath
+    );
   });
 
   const stop = vscode.commands.registerCommand("roadrunner.stop", () => {
@@ -47,20 +54,21 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage("Stop task");
   });
 
-  const start = vscode.commands.registerCommand("roadrunner.run", () => {
-    // The code you place here will be executed every time your command is executed
+  const start = vscode.commands.registerCommand(
+    "roadrunner.run",
+    (data: Task) => {
+      // The code you place here will be executed every time your command is executed
 
-    // Display a message box to the user
-    vscode.window.showInformationMessage(vscode.workspace.rootPath!);
-  });
+      // Display a message box to the user
+      vscode.window.showInformationMessage(JSON.stringify(data));
+      const terminal = vscode.window.createTerminal(data.label);
+
+      terminal.show();
+      terminal.sendText(`npm run ${data.script}`);
+    }
+  );
 
   context.subscriptions.push(refreshTasks, restartAll, stopAll, stop, start);
-
-  const roadrunnerProvider = new RoadrunnerProvider(vscode.workspace.rootPath!);
-
-  vscode.window.registerTreeDataProvider("roadrunnerTasks", roadrunnerProvider);
-
-  roadrunnerProvider.refresh();
 }
 
 // this method is called when your extension is deactivated

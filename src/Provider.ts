@@ -62,10 +62,7 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
 }
 
 export class Task extends vscode.TreeItem {
-  constructor(
-    public readonly label: string,
-    public readonly command: vscode.Command
-  ) {
+  constructor(public readonly label: string, public readonly script: string) {
     super(label);
   }
 
@@ -77,10 +74,25 @@ export class Task extends vscode.TreeItem {
     return "running";
   }
 
-  iconPath = {
-    light: path.join(__filename, "..", "..", "resources", "task.svg"),
-    dark: path.join(__filename, "..", "..", "resources", "task.svg")
-  };
+  get iconPath() {
+    let iconName;
+
+    switch (this.label) {
+      case "dev": {
+        iconName = "active";
+        break;
+      }
+
+      default: {
+        iconName = "inactive";
+      }
+    }
+
+    return {
+      light: path.join(__filename, "..", "..", "resources", `${iconName}.svg`),
+      dark: path.join(__filename, "..", "..", "resources", `${iconName}.svg`)
+    };
+  }
 
   contextValue = "task";
 }
