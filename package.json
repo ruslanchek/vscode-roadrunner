@@ -10,12 +10,18 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "tasks",
+    "packages",
+    "execute",
+    "run",
+    "npm"
+  ],
+  "galleryBanner": {
+    "color": "#4073FD"
+  },
   "activationEvents": [
-    "onCommand:roadrunner.refreshTasks",
-    "onCommand:roadrunner.run",
-    "onCommand:roadrunner.stop",
-    "onCommand:roadrunner.stopAll",
-    "onCommand:roadrunner.restartAll"
+    "onView:roadrunnerTasks"
   ],
   "main": "./out/extension.js",
   "contributes": {

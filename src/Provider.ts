@@ -6,11 +6,12 @@ export interface ITerminalInstance {
   terminal: vscode.Terminal;
 }
 
-export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
+export class RoadrunnerProvider
+  implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    Task | undefined
-  > = new vscode.EventEmitter<Task | undefined>();
-  readonly onDidChangeTreeData: vscode.Event<Task | undefined> = this
+    vscode.TreeItem
+  > = new vscode.EventEmitter<vscode.TreeItem>();
+  readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem> = this
     ._onDidChangeTreeData.event;
 
   constructor(private workspaceRoot: string) {}
@@ -57,13 +58,13 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
       this.closeTerminal(key);
     });
 
-    this.getChildren().then((tasks: Task[]) => {
-      tasks.forEach(task => {
-        if (running.includes(task.label)) {
-          this.run(task);
-        }
-      });
-    });
+    // this.getChildren().then((tasks: Task[]) => {
+    //   tasks.forEach(task => {
+    //     if (running.includes(task.label)) {
+    //       this.run(task);
+    //     }
+    //   });
+    // });
 
     this.refresh();
   }
@@ -80,15 +81,17 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
     this._onDidChangeTreeData.fire();
   }
 
-  getTreeItem(element: Task): vscode.TreeItem {
+  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
   }
 
-  getChildren(): Thenable<Task[]> {
+  getChildren(): Thenable<vscode.TreeItem[]> {
     if (!this.workspaceRoot) {
       vscode.window.showInformationMessage("No tasks in empty workspace");
       return Promise.resolve([]);
     }
+
+    return Promise.resolve(this.getWorkspaceItems());
 
     const packageJsonPath = path.join(this.workspaceRoot, "package.json");
 
@@ -98,6 +101,20 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
       vscode.window.showInformationMessage("Workspace has no package.json");
       return Promise.resolve([]);
     }
+  }
+
+  private getWorkspaceItems(): vscode.TreeItem[] {
+    return vscode.workspace.workspaceFolders!.map(folder => {
+      return {
+        id: folder.index.toString(),
+        label: folder.name,
+        collapsableState: vscode.TreeItemCollapsibleState.Collapsed,
+        iconPath: {
+          light: path.join(__filename, "..", "..", "resources", `folder.svg`),
+          dark: path.join(__filename, "..", "..", "resources", `folder.svg`)
+        }
+      };
+    });
   }
 
   private getTasks(packageJsonPath: string): Task[] {

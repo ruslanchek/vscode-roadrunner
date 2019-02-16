@@ -3,9 +3,11 @@ import { RoadrunnerProvider, Task } from "./Provider";
 
 const roadrunnerProvider = new RoadrunnerProvider(vscode.workspace.rootPath!);
 
-vscode.window.registerTreeDataProvider("roadrunnerTasks", roadrunnerProvider);
-
 export function activate(context: vscode.ExtensionContext) {
+  vscode.window.registerTreeDataProvider("roadrunnerTasks", roadrunnerProvider);
+
+  roadrunnerProvider.refresh();
+
   context.subscriptions.push(
     vscode.commands.registerCommand("roadrunner.refreshTasks", () => {
       roadrunnerProvider.refresh();
@@ -32,7 +34,18 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("roadrunner.run", (task: Task) => {
-      roadrunnerProvider.run(task);
+      if (task) {
+        roadrunnerProvider.run(task);
+      } else {
+        vscode.window.showOpenDialog({
+          canSelectMany: false,
+          openLabel: "Open",
+          filters: {
+            "Text files": ["txt"],
+            "All files": ["*"]
+          }
+        });
+      }
     })
   );
 }
