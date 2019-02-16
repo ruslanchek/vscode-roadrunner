@@ -105,7 +105,13 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
       return Object.keys(packageJson.scripts).map(
-        script => new Task(script, packageJson.scripts[script], this)
+        script =>
+          new Task(
+            this,
+            script,
+            packageJson.scripts[script],
+            vscode.TreeItemCollapsibleState.None
+          )
       );
     } else {
       return [];
@@ -125,12 +131,15 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
 
 export class Task extends vscode.TreeItem {
   constructor(
-    public readonly label: string,
-    public readonly script: string,
-    private readonly context: RoadrunnerProvider
+    readonly providerContext: RoadrunnerProvider,
+    readonly label: string,
+    readonly script: string,
+    readonly collapsibleState: vscode.TreeItemCollapsibleState
   ) {
-    super(label);
+    super(label, collapsibleState);
   }
+
+  contextValue = "task";
 
   get tooltip(): string {
     return `${this.label}: ${this.command}`;
@@ -141,7 +150,7 @@ export class Task extends vscode.TreeItem {
   }
 
   get isRunning(): boolean {
-    const terminalInstance = this.context.terminals.get(this.label);
+    const terminalInstance = this.providerContext.terminals.get(this.label);
 
     return Boolean(terminalInstance);
   }
@@ -154,6 +163,4 @@ export class Task extends vscode.TreeItem {
       dark: path.join(__filename, "..", "..", "resources", `${iconName}.svg`)
     };
   }
-
-  contextValue = "task";
 }
