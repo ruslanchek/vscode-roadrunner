@@ -36,7 +36,7 @@ export class RoadrunnerProvider implements vscode.TreeDataProvider<Task> {
     const { terminal } = this.getTerminal(task.label);
 
     terminal.show();
-    terminal.sendText(`npm run ${task.script}`);
+    terminal.sendText(`npm run ${task.label}`);
   }
 
   closeTerminal(label: string) {
@@ -142,7 +142,7 @@ export class Task extends vscode.TreeItem {
   contextValue = "task";
 
   get tooltip(): string {
-    return `${this.label}: ${this.command}`;
+    return `${this.label}: ${this.script}`;
   }
 
   get description(): string {
