@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
-import { RoadrunnerProvider, Task } from "./Provider";
+import { RoadrunnerProvider } from "./Provider";
+import { Task } from "./Task";
 
-const roadrunnerProvider = new RoadrunnerProvider(vscode.workspace.rootPath!);
+const roadrunnerProvider = new RoadrunnerProvider();
 
 export function activate(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider("roadrunnerTasks", roadrunnerProvider);
@@ -28,14 +29,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("roadrunner.stop", (task: Task) => {
-      roadrunnerProvider.closeTerminal(task.label);
+      roadrunnerProvider.closeTerminal(task.id);
     })
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("roadrunner.run", (task: Task) => {
       if (task) {
-        roadrunnerProvider.run(task);
+        roadrunnerProvider.run(task.id);
       } else {
         vscode.window.showOpenDialog({
           canSelectMany: false,

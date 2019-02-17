@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import * as path from "path";
+import { Task } from "./Task";
+import { Project } from "./Project";
 
 export interface ITerminalInstance {
   terminal: vscode.Terminal;
@@ -14,41 +15,53 @@ export class RoadrunnerProvider
   readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem> = this
     ._onDidChangeTreeData.event;
 
-  constructor(private workspaceRoot: string) {}
-
   public terminals: Map<string, ITerminalInstance> = new Map();
 
-  getTerminal(label: string): ITerminalInstance {
-    let terminalInstance = this.terminals.get(label);
+  getTerminal(id: string): ITerminalInstance {
+    let terminalInstance = this.terminals.get(id);
 
     if (!terminalInstance) {
       terminalInstance = {
-        terminal: vscode.window.createTerminal(label)
+        terminal: vscode.window.createTerminal(id)
       };
 
-      this.terminals.set(label, terminalInstance);
+      this.terminals.set(id, terminalInstance);
       this.refresh();
     }
 
     return terminalInstance;
   }
 
-  run(task: Task) {
-    const { terminal } = this.getTerminal(task.label);
-
-    terminal.show();
-    terminal.sendText(`npm run ${task.label}`);
+  findTask(taskId: string): Task | undefined {
+    return this.getAllTasks().find(task => task.id === taskId);
   }
 
-  closeTerminal(label: string) {
-    const terminalInstance = this.terminals.get(label);
+  run(taskId: string) {
+    const task = this.findTask(taskId);
 
-    if (terminalInstance) {
-      terminalInstance.terminal.dispose();
-      this.terminals.delete(label);
+    if (task) {
+      const { terminal } = this.getTerminal(task.id);
+
+      terminal.show();
+      terminal.sendText(task.terminalaCommand);
+
+      this.refresh();
     }
+  }
 
-    this.refresh();
+  closeTerminal(taskId: string) {
+    const task = this.findTask(taskId);
+
+    if (task) {
+      const terminalInstance = this.terminals.get(task.id);
+
+      if (terminalInstance) {
+        terminalInstance.terminal.dispose();
+        this.terminals.delete(task.id);
+      }
+
+      this.refresh();
+    }
   }
 
   restartAllTerminals() {
@@ -58,13 +71,11 @@ export class RoadrunnerProvider
       this.closeTerminal(key);
     });
 
-    // this.getChildren().then((tasks: Task[]) => {
-    //   tasks.forEach(task => {
-    //     if (running.includes(task.label)) {
-    //       this.run(task);
-    //     }
-    //   });
-    // });
+    this.getAllTasks().forEach(task => {
+      if (running.includes(task.id)) {
+        this.run(task.id);
+      }
+    });
 
     this.refresh();
   }
@@ -85,51 +96,93 @@ export class RoadrunnerProvider
     return element;
   }
 
-  getChildren(): Thenable<vscode.TreeItem[]> {
-    if (!this.workspaceRoot) {
-      vscode.window.showInformationMessage("No tasks in empty workspace");
-      return Promise.resolve([]);
-    }
-
-    return Promise.resolve(this.getWorkspaceItems());
-
-    const packageJsonPath = path.join(this.workspaceRoot, "package.json");
-
-    if (this.pathExists(packageJsonPath)) {
-      return Promise.resolve(this.getTasks(packageJsonPath));
+  getChildren(element: vscode.TreeItem): vscode.TreeItem[] {
+    if (element && element.resourceUri && element.label) {
+      return this.getTasks(element.label, element.resourceUri.fsPath);
     } else {
-      vscode.window.showInformationMessage("Workspace has no package.json");
-      return Promise.resolve([]);
+      return this.getWorkspaceItems();
     }
   }
 
   private getWorkspaceItems(): vscode.TreeItem[] {
-    return vscode.workspace.workspaceFolders!.map(folder => {
-      return {
-        id: folder.index.toString(),
-        label: folder.name,
-        collapsableState: vscode.TreeItemCollapsibleState.Collapsed,
-        iconPath: {
-          light: path.join(__filename, "..", "..", "resources", `folder.svg`),
-          dark: path.join(__filename, "..", "..", "resources", `folder.svg`)
+    if (vscode.workspace && vscode.workspace.workspaceFolders) {
+      const projects: Project[] = [];
+
+      vscode.workspace.workspaceFolders.forEach(folder => {
+        const project = new Project(folder);
+
+        if (
+          folder.uri &&
+          folder.uri.fsPath &&
+          this.readPackageScripts(`${folder.uri.fsPath}/package.json`)
+        ) {
+          projects.push(project);
         }
-      };
-    });
+      });
+
+      return projects;
+    } else {
+      return [];
+    }
   }
 
-  private getTasks(packageJsonPath: string): Task[] {
-    if (this.pathExists(packageJsonPath)) {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+  private readPackageScripts(
+    packageJsonPath: string
+  ): { [key: string]: string } | null {
+    try {
+      if (this.pathExists(packageJsonPath)) {
+        const packageJson = fs.readFileSync(packageJsonPath, "utf-8");
 
-      return Object.keys(packageJson.scripts).map(
-        script =>
-          new Task(
-            this,
-            script,
-            packageJson.scripts[script],
-            vscode.TreeItemCollapsibleState.None
-          )
-      );
+        if (packageJson && JSON.parse(packageJson)) {
+          return JSON.parse(packageJson).scripts;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return null;
+  }
+
+  private getAllTasks(): Task[] {
+    if (vscode.workspace.workspaceFolders) {
+      let tasks: Task[] = [];
+
+      vscode.workspace.workspaceFolders.forEach(folder => {
+        const packageJsonPath = `${folder.uri.fsPath}/package.json`;
+
+        if (this.pathExists(packageJsonPath)) {
+          tasks = tasks.concat(this.getTasks(folder.name, folder.uri.fsPath));
+        }
+      });
+
+      return tasks;
+    } else {
+      return [];
+    }
+  }
+
+  private getTasks(workspaceName: string, workspacePath: string): Task[] {
+    const path = `${workspacePath}/package.json`;
+
+    if (this.pathExists(path)) {
+      const packageJsonScripts = this.readPackageScripts(path);
+
+      if (packageJsonScripts) {
+        return Object.keys(packageJsonScripts).map(
+          script =>
+            new Task(
+              this,
+              script,
+              packageJsonScripts[script],
+              vscode.TreeItemCollapsibleState.None,
+              workspaceName,
+              workspacePath
+            )
+        );
+      } else {
+        return [];
+      }
     } else {
       return [];
     }
@@ -143,41 +196,5 @@ export class RoadrunnerProvider
     }
 
     return true;
-  }
-}
-
-export class Task extends vscode.TreeItem {
-  constructor(
-    readonly providerContext: RoadrunnerProvider,
-    readonly label: string,
-    readonly script: string,
-    readonly collapsibleState: vscode.TreeItemCollapsibleState
-  ) {
-    super(label, collapsibleState);
-  }
-
-  contextValue = "task";
-
-  get tooltip(): string {
-    return `${this.label}: ${this.script}`;
-  }
-
-  get description(): string {
-    return "running";
-  }
-
-  get isRunning(): boolean {
-    const terminalInstance = this.providerContext.terminals.get(this.label);
-
-    return Boolean(terminalInstance);
-  }
-
-  get iconPath() {
-    const iconName = this.isRunning ? "active" : "inactive";
-
-    return {
-      light: path.join(__filename, "..", "..", "resources", `${iconName}.svg`),
-      dark: path.join(__filename, "..", "..", "resources", `${iconName}.svg`)
-    };
   }
 }

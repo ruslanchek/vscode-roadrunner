@@ -1,0 +1,69 @@
+import * as vscode from "vscode";
+import * as path from "path";
+import { RoadrunnerProvider } from "./Provider";
+
+enum EPackageManager {
+  Npm = "npm",
+  Yarn = "yarn"
+}
+
+export class Task extends vscode.TreeItem {
+  constructor(
+    readonly providerContext: RoadrunnerProvider,
+    readonly label: string,
+    readonly script: string,
+    readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    readonly workspaceName: string,
+    readonly workspacePath: string
+  ) {
+    super(label, collapsibleState);
+  }
+
+  contextValue = "task";
+
+  get currentPackageManager(): EPackageManager {
+    return (
+      vscode.workspace.getConfiguration("npm").get("packageManager") ||
+      EPackageManager.Npm
+    );
+  }
+
+  get terminalaCommand(): string {
+    switch (this.currentPackageManager) {
+      case EPackageManager.Yarn: {
+        return `cd ${this.workspacePath} && yarn ${this.label}`;
+      }
+
+      case EPackageManager.Npm:
+      default: {
+        return `cd ${this.workspacePath} && npm run ${this.label}`;
+      }
+    }
+  }
+
+  get id(): string {
+    return `${this.workspaceName} – ${this.label}`;
+  }
+
+  get tooltip(): string {
+    return `${this.label}: ${this.script}`;
+  }
+
+  get description(): string {
+    return "";
+  }
+
+  get isRunning(): boolean {
+    const terminalInstance = this.providerContext.terminals.get(this.id);
+    return Boolean(terminalInstance);
+  }
+
+  get iconPath() {
+    const iconName = this.isRunning ? "active" : "inactive";
+
+    return {
+      light: path.join(__filename, "..", "..", "resources", `${iconName}.svg`),
+      dark: path.join(__filename, "..", "..", "resources", `${iconName}.svg`)
+    };
+  }
+}
