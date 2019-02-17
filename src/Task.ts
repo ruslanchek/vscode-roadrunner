@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { RoadrunnerProvider } from "./Provider";
+import { icons } from "./Icons";
 
 enum EPackageManager {
   Npm = "npm",
@@ -61,11 +62,6 @@ export class Task extends vscode.TreeItem {
   }
 
   get iconPath() {
-    const iconName = this.isRunning ? "active" : "inactive";
-
-    return {
-      light: path.join(__filename, "..", "..", "resources", `${iconName}.svg`),
-      dark: path.join(__filename, "..", "..", "resources", `${iconName}.svg`)
-    };
+    return this.isRunning ? icons.activeTask : icons.inactiveTask;
   }
 }

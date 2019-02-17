@@ -9,18 +9,17 @@ export interface ITerminalInstance {
 
 export class RoadrunnerProvider
   implements vscode.TreeDataProvider<vscode.TreeItem> {
+  public terminals: Map<string, ITerminalInstance> = new Map();
   private _onDidChangeTreeData: vscode.EventEmitter<
     vscode.TreeItem
   > = new vscode.EventEmitter<vscode.TreeItem>();
   readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem> = this
     ._onDidChangeTreeData.event;
 
-  public terminals: Map<string, ITerminalInstance> = new Map();
-
-  public statusBar: vscode.StatusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left,
-    100
-  );
+  constructor(readonly statusBar: vscode.StatusBarItem) {
+    statusBar.show();
+    statusBar.text = `xxx`;
+  }
 
   getTerminal(id: string): ITerminalInstance {
     let terminalInstance = this.terminals.get(id);

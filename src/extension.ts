@@ -2,7 +2,12 @@ import * as vscode from "vscode";
 import { RoadrunnerProvider } from "./Provider";
 import { Task } from "./Task";
 
-const roadrunnerProvider = new RoadrunnerProvider();
+const statusBar: vscode.StatusBarItem = vscode.window.createStatusBarItem(
+  vscode.StatusBarAlignment.Left,
+  100
+);
+
+const roadrunnerProvider = new RoadrunnerProvider(statusBar);
 
 export function activate(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider("roadrunnerTasks", roadrunnerProvider);
