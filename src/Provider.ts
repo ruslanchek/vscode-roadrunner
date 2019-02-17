@@ -17,6 +17,11 @@ export class RoadrunnerProvider
 
   public terminals: Map<string, ITerminalInstance> = new Map();
 
+  public statusBar: vscode.StatusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left,
+    100
+  );
+
   getTerminal(id: string): ITerminalInstance {
     let terminalInstance = this.terminals.get(id);
 

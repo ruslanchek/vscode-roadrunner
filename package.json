@@ -6,7 +6,7 @@
   "engines": {
     "vscode": "^1.31.0"
   },
-  "enableProposedApi": true,
+  "enableProposedApi": false,
   "categories": [
     "Other"
   ],
@@ -62,8 +62,8 @@
         "command": "roadrunner.restartAll",
         "title": "Roadrunner: Restart all tasks",
         "icon": {
-          "dark": "resources/play.svg",
-          "light": "resources/play.svg"
+          "dark": "resources/refresh.svg",
+          "light": "resources/refresh.svg"
         }
       }
     ],
@@ -87,11 +87,6 @@
     "menus": {
       "view/title": [
         {
-          "command": "roadrunner.refreshTasks",
-          "when": "view == roadrunnerTasks",
-          "group": "navigation"
-        },
-        {
           "command": "roadrunner.restartAll",
           "when": "view == roadrunnerTasks",
           "group": "navigation"
@@ -110,7 +105,7 @@
         },
         {
           "command": "roadrunner.stop",
-          "when": "view == roadrunnerTasks && viewItem == task",
+          "when": "view == roadrunnerTasks && viewItem == activeTask",
           "group": "inline"
         }
       ]

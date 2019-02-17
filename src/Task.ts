@@ -19,7 +19,9 @@ export class Task extends vscode.TreeItem {
     super(label, collapsibleState);
   }
 
-  contextValue = "task";
+  get contextValue() {
+    return this.isRunning ? "activeTask" : "task";
+  }
 
   get currentPackageManager(): EPackageManager {
     return (
