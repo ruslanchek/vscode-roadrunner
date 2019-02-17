@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import { Task } from "./Task";
 import { Project } from "./Project";
+import { NoTasks } from "./NoTasks";
+import { NoPackage } from "./NoPackage";
 
 export interface ITerminalInstance {
   terminal: vscode.Terminal;
@@ -47,7 +49,7 @@ export class RoadrunnerProvider
       const { terminal } = this.getTerminal(task.id);
 
       terminal.show();
-      terminal.sendText(task.terminalaCommand);
+      terminal.sendText(task.terminalCommand);
 
       this.refresh();
     }
@@ -113,14 +115,22 @@ export class RoadrunnerProvider
       const projects: Project[] = [];
 
       vscode.workspace.workspaceFolders.forEach(folder => {
-        const project = new Project(folder);
-
         if (
           folder.uri &&
           folder.uri.fsPath &&
           this.readPackageScripts(`${folder.uri.fsPath}/package.json`)
         ) {
-          projects.push(project);
+          projects.push(
+            new Project(folder, vscode.TreeItemCollapsibleState.Expanded, "")
+          );
+        } else {
+          projects.push(
+            new Project(
+              folder,
+              vscode.TreeItemCollapsibleState.None,
+              "No tasks"
+            )
+          );
         }
       });
 
@@ -179,7 +189,6 @@ export class RoadrunnerProvider
               this,
               script,
               packageJsonScripts[script],
-              vscode.TreeItemCollapsibleState.None,
               workspaceName,
               workspacePath
             )

@@ -60,7 +60,7 @@
       },
       {
         "command": "roadrunner.restartAll",
-        "title": "Roadrunner: Restart all tasks",
+        "title": "Roadrunner: Restart all running tasks",
         "icon": {
           "dark": "resources/refresh.svg",
           "light": "resources/refresh.svg"

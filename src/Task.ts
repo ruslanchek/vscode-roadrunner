@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import * as path from "path";
 import { RoadrunnerProvider } from "./Provider";
 import { icons } from "./Icons";
 
@@ -13,14 +12,13 @@ export class Task extends vscode.TreeItem {
     readonly providerContext: RoadrunnerProvider,
     readonly label: string,
     readonly script: string,
-    readonly collapsibleState: vscode.TreeItemCollapsibleState,
     readonly workspaceName: string,
     readonly workspacePath: string
   ) {
-    super(label, collapsibleState);
+    super(label, vscode.TreeItemCollapsibleState.None);
   }
 
-  get contextValue() {
+  public get contextValue() {
     return this.isRunning ? "activeTask" : "task";
   }
 
@@ -31,7 +29,7 @@ export class Task extends vscode.TreeItem {
     );
   }
 
-  get terminalaCommand(): string {
+  get terminalCommand(): string {
     switch (this.currentPackageManager) {
       case EPackageManager.Yarn: {
         return `cd ${this.workspacePath} && yarn ${this.label}`;
