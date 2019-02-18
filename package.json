@@ -6,6 +6,8 @@
   "engines": {
     "vscode": "^1.31.0"
   },
+  "publisher": "rsh",
+  "icon": "icon.png",
   "enableProposedApi": false,
   "categories": [
     "Other"
