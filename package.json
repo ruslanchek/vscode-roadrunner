@@ -24,7 +24,7 @@
     "npm"
   ],
   "galleryBanner": {
-    "color": "#4073FD"
+    "color": "#1c2035"
   },
   "activationEvents": [
     "onView:roadrunnerTasks"
