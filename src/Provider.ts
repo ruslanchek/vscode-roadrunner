@@ -2,8 +2,6 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import { Task } from "./Task";
 import { Project } from "./Project";
-import { NoTasks } from "./NoTasks";
-import { NoPackage } from "./NoPackage";
 
 export interface ITerminalInstance {
   terminal: vscode.Terminal;
@@ -20,7 +18,14 @@ export class RoadrunnerProvider
 
   constructor(readonly statusBar: vscode.StatusBarItem) {
     statusBar.show();
-    statusBar.text = `xxx`;
+    // statusBar.command = "roadrunner.show";
+  }
+
+  updateStatusBar() {
+    const runningTasks = this.getAllTasks().filter(task => task.isRunning);
+
+    this.statusBar.tooltip = "Roadrunner active tasks";
+    this.statusBar.text = `$(play) ${runningTasks.length}`;
   }
 
   getTerminal(id: string): ITerminalInstance {
@@ -96,6 +101,7 @@ export class RoadrunnerProvider
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
+    this.updateStatusBar();
   }
 
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {

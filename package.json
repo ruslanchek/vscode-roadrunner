@@ -28,7 +28,7 @@
     "commands": [
       {
         "command": "roadrunner.refreshTasks",
-        "title": "Roadrunner: Refresh",
+        "title": "Refresh",
         "icon": {
           "dark": "resources/refresh.svg",
           "light": "resources/refresh.svg"
@@ -36,7 +36,7 @@
       },
       {
         "command": "roadrunner.run",
-        "title": "Roadrunner: Run task",
+        "title": "Run task",
         "icon": {
           "dark": "resources/play.svg",
           "light": "resources/play.svg"
@@ -44,7 +44,7 @@
       },
       {
         "command": "roadrunner.stop",
-        "title": "Roadrunner: Stop task",
+        "title": "Stop task",
         "icon": {
           "dark": "resources/stop.svg",
           "light": "resources/stop.svg"
@@ -52,7 +52,7 @@
       },
       {
         "command": "roadrunner.stopAll",
-        "title": "Roadrunner: Stop all tasks",
+        "title": "Stop all tasks",
         "icon": {
           "dark": "resources/stop.svg",
           "light": "resources/stop.svg"
@@ -60,11 +60,15 @@
       },
       {
         "command": "roadrunner.restartAll",
-        "title": "Roadrunner: Restart all running tasks",
+        "title": "Restart all running tasks",
         "icon": {
           "dark": "resources/refresh.svg",
           "light": "resources/refresh.svg"
         }
+      },
+      {
+        "command": "roadrunner.focusTerminal",
+        "title": "Focus terminal"
       }
     ],
     "viewsContainers": {
@@ -98,6 +102,10 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "roadrunner.focusTerminal",
+          "when": "view == roadrunnerTasks && viewItem == activeTask"
+        },
         {
           "command": "roadrunner.run",
           "when": "view == roadrunnerTasks && viewItem == task",

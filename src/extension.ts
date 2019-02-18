@@ -42,16 +42,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("roadrunner.run", (task: Task) => {
       if (task) {
         roadrunnerProvider.run(task.id);
-      } else {
-        vscode.window.showOpenDialog({
-          canSelectMany: false,
-          openLabel: "Open",
-          filters: {
-            "Text files": ["txt"],
-            "All files": ["*"]
-          }
-        });
       }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("roadrunner.focusTerminal", () => {
+      console.log("xxx");
     })
   );
 }
