@@ -47,9 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("roadrunner.focusTerminal", () => {
-      console.log("xxx");
-    })
+    vscode.commands.registerCommand("roadrunner.focusTerminal", () => {})
   );
 }
 
