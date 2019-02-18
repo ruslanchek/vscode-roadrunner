@@ -1,8 +1,8 @@
 {
   "name": "roadrunner",
-  "displayName": "roadrunner",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "Roadrunner",
+  "description": "NPM and Yarn task running system",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.31.0"
   },
