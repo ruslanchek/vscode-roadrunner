@@ -6,6 +6,10 @@
   "engines": {
     "vscode": "^1.31.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruslanchek/vscode-roadrunner"
+  },
   "publisher": "rsh",
   "icon": "icon.png",
   "enableProposedApi": false,
